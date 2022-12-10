@@ -1,0 +1,80 @@
+DEBUG = False
+
+lines = []
+
+while True:
+    try:
+        line = input()
+        lines.append(line)
+    except EOFError:
+        break
+
+movements = [(direction, int(magnitude)) for direction, magnitude in [line.split() for line in lines]]
+
+head = (0, 0)
+tail = (0, 0)
+visited = { tail }
+
+def isAdjacent(head, tail):
+    headR, headC = head
+    tailR, tailC = tail
+    return abs(headR - tailR) <= 1 and abs(headC - tailC) <= 1
+
+translation = {
+    "R" : (1, 0),
+    "L" : (-1, 0),
+    "U" : (0, -1),
+    "D" : (0, 1)
+}
+
+sequence = []
+
+def moveTail(head, tail):
+    headR, headC = head
+    tailR, tailC = tail
+
+    drow = headR - tailR
+    dcol = headC - tailC
+
+    if drow > 1 and dcol == 0:
+        return tailR + 1, tailC
+    elif drow < -1 and dcol == 0:
+        return tailR - 1, tailC
+    if dcol > 1 and drow == 0:
+        return tailR, tailC + 1
+    elif dcol < -1 and drow == 0:
+        return tailR, tailC - 1
+    if drow > 1:
+        return tailR + 1, tailC + dcol
+    elif drow < -1:
+        return tailR - 1, tailC + dcol
+    if dcol > 1:
+        return tailR + drow, tailC + 1
+    elif dcol < -1:
+        return tailR + drow, tailC - 1
+
+maxRow, maxCol = 0, 0
+
+for direction, magnitude in movements:
+    drow, dcol = translation[direction]
+    for i in range(magnitude):
+        head = head[0] + drow, head[1] + dcol
+        if not isAdjacent(head, tail):
+            tail = moveTail(head, tail)
+            visited.add(tail)
+        sequence.append(tail)
+        maxRow = max(maxRow, abs(tail[0]))
+        maxCol = max(maxCol, abs(tail[1]))
+
+if DEBUG:
+    for i, (row, col) in enumerate(sequence):
+        print(f"Round {i + 1}")
+        grid = [['#' for _ in range(-maxCol + 1, maxCol)] for _ in range(-maxRow + 1, maxRow)]
+        grid[row][col] = 'T'
+        for row in grid:
+            print(''.join(row))
+
+
+    
+
+print(len(visited))
